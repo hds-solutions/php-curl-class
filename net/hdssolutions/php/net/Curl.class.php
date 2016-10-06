@@ -179,7 +179,7 @@
             }
         }
 
-        private setData($req_type, $data, $data_type) {
+        private function setData($req_type, $data, $data_type) {
             // check if we have POST data
             if ($data !== null) {
                 if (in_array($req_type, [ 'GET', 'DELETE' ]))
