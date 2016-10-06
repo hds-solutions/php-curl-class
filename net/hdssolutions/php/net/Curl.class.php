@@ -84,7 +84,7 @@
 
         function getCookiesJar() {
             //
-            retrun $this->cookies_jar;
+            return $this->cookies_jar;
         }
 
         public function get($url, $data = null) {
