@@ -49,6 +49,9 @@
             // empty local attributes
             $this->resource = null;
             $this->res_url = null;
+
+            // return true for success  
+            return true;
         }
 
         public function getResponse() {
