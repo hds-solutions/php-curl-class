@@ -1,4 +1,6 @@
 <?php
+    namespace net\hdssolutions\php\net;
+    
     final class Curl {
         /**
          * HTTP Auth
