@@ -95,8 +95,8 @@
             }
             // enable Cookies
             if ($this->parent->getCookiesJar() !== null) {
-                curl_setopt($this->resource, CURLOPT_COOKIEJAR,  WS_COOKIES);
-                curl_setopt($this->resource, CURLOPT_COOKIEFILE, WS_COOKIES);
+                curl_setopt($this->resource, CURLOPT_COOKIEJAR,  $this->parent->getCookiesJar());
+                curl_setopt($this->resource, CURLOPT_COOKIEFILE, $this->parent->getCookiesJar());
             }
         }
 
