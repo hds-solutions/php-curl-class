@@ -134,10 +134,17 @@
                     // append data to POST fields
                     switch ($data_type) {
                         case 'url':
+                            curl_setopt($this->resource, CURLOPT_HTTPHEADER, [
+                                    'Content-Type: application/x-www-form-urlencoded',
+                                    'Content-Length: '.strlen(http_build_query($data))
+                                ]);
                             curl_setopt($this->resource, CURLOPT_POSTFIELDS, http_build_query($data));
                             break;
                         case 'json':
-                            curl_setopt($this->resource, CURLOPT_HTTPHEADER, [ 'Content-Type: application/json' ]);
+                            curl_setopt($this->resource, CURLOPT_HTTPHEADER, [
+                                    'Content-Type: application/json',
+                                    'Content-Length: '.strlen(json_encode($data))
+                                ]);
                             curl_setopt($this->resource, CURLOPT_POSTFIELDS, json_encode($data));
                             break;
                         default:
