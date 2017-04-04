@@ -130,7 +130,9 @@
                     $this->res_url .= (parse_url($this->res_url, PHP_URL_QUERY) === null ? '?' : '&') . http_build_query($data);
                     // update request URL
                     curl_setopt($this->resource, CURLOPT_URL, $this->res_url);
-                } else
+                } else {
+                    // FIX: POST|PUT without body
+                    $data = $data === null ? (object)[ '__ALLOW_POST_PUT_WITHOUT_BODY' => true ] : $data;
                     // append data to POST fields
                     switch ($data_type) {
                         case 'url':
@@ -151,6 +153,7 @@
                             throw new Exception("Unsupported or Invalid data type: \"${data_type}\"");
                             break;
                     }
+                }
             }
         }
     }
