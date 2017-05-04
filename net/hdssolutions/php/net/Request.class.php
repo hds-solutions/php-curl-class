@@ -21,6 +21,12 @@
          */
         private $response = null;
 
+        /**
+         * Custom headers
+         * @var array
+         */
+        private $headers = [];
+
         public function __construct($parent, $url, $req_type = 'GET', $data = null, $data_type = 'url') {
             // save parent relation
             $this->parent = $parent;
@@ -32,6 +38,11 @@
             $this->setRequestType($req_type);
             // set data
             $this->setData($req_type, $data, $data_type);
+        }
+
+        public function addHeader($key, $value) {
+            //
+            $this->headers[$key] = $value;
         }
 
         public function exec() {
@@ -136,17 +147,17 @@
                     // append data to POST fields
                     switch ($data_type) {
                         case 'url':
-                            curl_setopt($this->resource, CURLOPT_HTTPHEADER, [
+                            curl_setopt($this->resource, CURLOPT_HTTPHEADER, array_merge($this->headers, [
                                     'Content-Type: application/x-www-form-urlencoded',
                                     'Content-Length: '.strlen(http_build_query($data))
-                                ]);
+                                ]));
                             curl_setopt($this->resource, CURLOPT_POSTFIELDS, http_build_query($data));
                             break;
                         case 'json':
-                            curl_setopt($this->resource, CURLOPT_HTTPHEADER, [
+                            curl_setopt($this->resource, CURLOPT_HTTPHEADER, array_merge($this->headers, [
                                     'Content-Type: application/json',
                                     'Content-Length: '.strlen(json_encode($data))
-                                ]);
+                                ]));
                             curl_setopt($this->resource, CURLOPT_POSTFIELDS, json_encode($data));
                             break;
                         default:
