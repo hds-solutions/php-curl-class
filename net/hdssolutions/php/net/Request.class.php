@@ -46,7 +46,7 @@
 
         public function addHeader($key, $value) {
             //
-            $this->headers[$key] = $value;
+            $this->headers[] = "$key: $value";
         }
 
         public function exec() {
