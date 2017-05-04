@@ -27,6 +27,9 @@
          */
         private $headers = [];
 
+        private $data;
+        private $data_type;
+
         public function __construct($parent, $url, $req_type = 'GET', $data = null, $data_type = 'url') {
             // save parent relation
             $this->parent = $parent;
@@ -36,8 +39,9 @@
             $this->configure($url);
             // set request type
             $this->setRequestType($req_type);
-            // set data
-            $this->setData($req_type, $data, $data_type);
+            // save data & data_type
+            $this->data = $data;
+            $this->data_type = $data_type;
         }
 
         public function addHeader($key, $value) {
@@ -46,6 +50,9 @@
         }
 
         public function exec() {
+            // append data
+            $this->setData();
+
             // execute request
             $this->response = curl_exec($this->resource);
 
@@ -112,6 +119,9 @@
         }
 
         private function setRequestType($req_type) {
+            // save request type
+            $this->request_type = $req_type;
+
             // Request type
             switch ($req_type) {
                 case 'GET':
@@ -133,35 +143,35 @@
             }
         }
 
-        private function setData($req_type, $data, $data_type) {
+        private function setData() {
             // check if we have POST data
-            if ($data !== null) {
-                if (in_array($req_type, [ 'GET', 'DELETE' ])) {
+            if ($this->data !== null) {
+                if (in_array($this->request_type, [ 'GET', 'DELETE' ])) {
                     // append data to base URL
-                    $this->res_url .= (parse_url($this->res_url, PHP_URL_QUERY) === null ? '?' : '&') . http_build_query($data);
+                    $this->res_url .= (parse_url($this->res_url, PHP_URL_QUERY) === null ? '?' : '&') . http_build_query($this->data);
                     // update request URL
                     curl_setopt($this->resource, CURLOPT_URL, $this->res_url);
                 } else {
                     // FIX: POST|PUT without body
-                    $data = $data === null ? (object)[ '__ALLOW_POST_PUT_WITHOUT_BODY' => true ] : $data;
+                    $this->data = $this->data === null ? (object)[ '__ALLOW_POST_PUT_WITHOUT_BODY' => true ] : $this->data;
                     // append data to POST fields
-                    switch ($data_type) {
+                    switch ($this->data_type) {
                         case 'url':
                             curl_setopt($this->resource, CURLOPT_HTTPHEADER, array_merge($this->headers, [
                                     'Content-Type: application/x-www-form-urlencoded',
-                                    'Content-Length: '.strlen(http_build_query($data))
+                                    'Content-Length: '.strlen(http_build_query($this->data))
                                 ]));
-                            curl_setopt($this->resource, CURLOPT_POSTFIELDS, http_build_query($data));
+                            curl_setopt($this->resource, CURLOPT_POSTFIELDS, http_build_query($this->data));
                             break;
                         case 'json':
                             curl_setopt($this->resource, CURLOPT_HTTPHEADER, array_merge($this->headers, [
                                     'Content-Type: application/json',
-                                    'Content-Length: '.strlen(json_encode($data))
+                                    'Content-Length: '.strlen(json_encode($this->data))
                                 ]));
-                            curl_setopt($this->resource, CURLOPT_POSTFIELDS, json_encode($data));
+                            curl_setopt($this->resource, CURLOPT_POSTFIELDS, json_encode($this->data));
                             break;
                         default:
-                            throw new Exception("Unsupported or Invalid data type: \"${data_type}\"");
+                            throw new Exception("Unsupported or Invalid data type: \"{$this->data_type}\"");
                             break;
                     }
                 }
