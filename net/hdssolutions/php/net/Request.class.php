@@ -106,6 +106,11 @@
                 curl_setopt($this->resource, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
                 curl_setopt($this->resource, CURLOPT_USERPWD, $this->parent->getHttpAuth());
             }
+            // enable Proxy
+            if ($this->parent->isProxyEnabled()) {
+                curl_setopt($this->resource, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
+                curl_setopt($this->resource, CURLOPT_PROXY, $this->parent->getProxy());
+            }
             // enable SSL Verify
             if (!$this->parent->isSslVerifyEnabled()) {
                 curl_setopt($this->resource, CURLOPT_SSL_VERIFYPEER, false);

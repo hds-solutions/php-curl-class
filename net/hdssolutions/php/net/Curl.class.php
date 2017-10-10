@@ -18,6 +18,11 @@
         private $ssl_enabled = true;
 
         /**
+         * Proxy
+         */
+        private $proxy = null;
+
+        /**
          * Timeouts
          */
         private $to_connect = 5;
@@ -27,6 +32,21 @@
          * Cookies
          */
         private $cookies_jar = null;
+
+        public function setProxy($proxy) {
+            //
+            $this->proxy = $proxy;
+        }
+
+        function isProxyEnabled() {
+            //
+            return $this->proxy !== null;
+        }
+
+        function getProxy() {
+            //
+            return $this->proxy;
+        }
 
         public function setHttpAuth($user, $pass) {
             // enable HTTP Auth
