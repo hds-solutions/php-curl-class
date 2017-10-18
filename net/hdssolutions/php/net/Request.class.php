@@ -16,6 +16,18 @@
         private $res_url = null;
 
         /**
+         * [$headers description]
+         * @var array
+         */
+        private $headers = [];
+
+        /**
+         * [$request_headers description]
+         * @var array
+         */
+        private $request_headers = [];
+
+        /**
          * Server response
          * @var mixed
          */
@@ -35,8 +47,39 @@
         }
 
         public function exec() {
+            //
+            $headers = [];
+            //
+            foreach ($this->request_headers as $key => $value)
+                //
+                $headers[] = "$key: $value";
+            // add request headers
+            curl_setopt($this->resource, CURLOPT_HTTPHEADER, $headers);
+
             // execute request
             $this->response = curl_exec($this->resource);
+
+            // parse headers
+            $hsize = curl_getinfo($this->resource, CURLINFO_HEADER_SIZE);
+            $headers = array_map('trim', explode("\n", substr($this->response, 0, $hsize)));
+            foreach ($headers as $header) {
+                //
+                if (strlen($header) == 0) continue;
+                //
+                if (!strpos($header, ':')) {
+                    //
+                    $this->headers[] = $header;
+                    //
+                    continue;
+                }
+                //
+                list($key, $value) = explode(':', $header, 2);
+                //
+                $this->headers[$key] = trim($value);
+            }
+
+            // save response body
+            $this->response = substr($this->response, $hsize);
 
             // check for errors
             if (curl_error($this->resource) !== '')
@@ -52,6 +95,16 @@
 
             // return true for success  
             return true;
+        }
+
+        public function addHeader($key, $value) {
+            //
+            $this->request_headers[$key] = $value;
+        }
+
+        public function getHeaders() {
+            //
+            return $this->headers;
         }
 
         public function getResponse() {
@@ -83,6 +136,8 @@
             curl_setopt($this->resource, CURLOPT_TIMEOUT, $this->parent->getTimeout());
             // force data return
             curl_setopt($this->resource, CURLOPT_RETURNTRANSFER, true);
+            // force headers return
+            curl_setopt($this->resource, CURLOPT_HEADER, true);
             // enable HTTP Auth
             if ($this->parent->isHttpAuthEnabled()) {
                 curl_setopt($this->resource, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
@@ -136,14 +191,16 @@
                     // append data to POST fields
                     switch ($data_type) {
                         case 'url':
-                            curl_setopt($this->resource, CURLOPT_HTTPHEADER, [
+                            //
+                            $this->request_headers = array_merge($this->request_headers, [
                                     'Content-Type: application/x-www-form-urlencoded',
                                     'Content-Length: '.strlen(http_build_query($data))
                                 ]);
                             curl_setopt($this->resource, CURLOPT_POSTFIELDS, http_build_query($data));
                             break;
                         case 'json':
-                            curl_setopt($this->resource, CURLOPT_HTTPHEADER, [
+                            //
+                            $this->request_headers = array_merge($this->request_headers, [
                                     'Content-Type: application/json',
                                     'Content-Length: '.strlen(json_encode($data))
                                 ]);
