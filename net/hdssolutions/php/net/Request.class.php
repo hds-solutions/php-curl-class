@@ -210,7 +210,7 @@
                             $this->request_headers = array_merge($this->request_headers, [
                                     'Content-Type: application/x-www-form-urlencoded',
                                     'Content-Length: '.strlen(http_build_query($this->data))
-                                ]));
+                                ]);
                             curl_setopt($this->resource, CURLOPT_POSTFIELDS, http_build_query($this->data));
                             break;
                         case 'json':
@@ -218,7 +218,7 @@
                             $this->request_headers = array_merge($this->request_headers, [
                                     'Content-Type: application/json',
                                     'Content-Length: '.strlen(json_encode($this->data))
-                                ]));
+                                ]);
                             curl_setopt($this->resource, CURLOPT_POSTFIELDS, json_encode($this->data));
                             break;
                         default:
