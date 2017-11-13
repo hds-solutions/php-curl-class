@@ -145,6 +145,8 @@
             curl_setopt($this->resource, CURLOPT_RETURNTRANSFER, true);
             // force headers return
             curl_setopt($this->resource, CURLOPT_HEADER, true);
+            // user agent
+            curl_setopt($this->resource, CURLOPT_USERAGENT, $this->parent->getUserAgent());
             // enable HTTP Auth
             if ($this->parent->isHttpAuthEnabled()) {
                 curl_setopt($this->resource, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
