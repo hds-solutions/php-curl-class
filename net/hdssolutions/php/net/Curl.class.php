@@ -33,6 +33,22 @@
          */
         private $cookies_jar = null;
 
+        /**
+         * [$useragent description]
+         * @var null
+         */
+        private $useragent = null;
+
+        public function __construct($useragent = 'Curl PHP Client (v0.4.1)') {
+            //
+            $this->useragent = $useragent;
+        }
+
+        public function getUserAgent() {
+            //
+            return $this->useragent;
+        }
+
         public function setProxy($proxy) {
             //
             $this->proxy = $proxy;
