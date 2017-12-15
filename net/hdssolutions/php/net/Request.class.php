@@ -1,5 +1,7 @@
 <?php
     namespace net\hdssolutions\php\net;
+
+    use CurlFile;
     
     final class Request {
         /**
@@ -26,6 +28,12 @@
          * @var array
          */
         private $request_headers = [];
+
+        /**
+         * [$files description]
+         * @var array
+         */
+        private $files = [];
 
         /**
          * Server response
@@ -107,6 +115,11 @@
         public function addHeader($key, $value) {
             //
             $this->request_headers[$key] = $value;
+        }
+
+        public function addFile($file) {
+            //
+            $this->files[] = $file;
         }
 
         public function getHeaders() {
@@ -195,8 +208,8 @@
         }
 
         private function setData() {
-            // check if we have POST data
-            if ($this->data !== null) {
+            // check if we have POST or Files data
+            if ($this->data !== null || (count($this->files) > 0 && $this->data_type == 'file')) {
                 if (in_array($this->request_type, [ 'GET', 'DELETE' ])) {
                     // append data to base URL
                     $this->res_url .= (parse_url($this->res_url, PHP_URL_QUERY) === null ? '?' : '&') . http_build_query($this->data);
@@ -222,6 +235,16 @@
                                     'Content-Length: '.strlen(json_encode($this->data))
                                 ]);
                             curl_setopt($this->resource, CURLOPT_POSTFIELDS, json_encode($this->data));
+                            break;
+                        case 'file':
+                            //
+                            $this->request_headers = array_merge($this->request_headers, [
+                                    'Content-Type: application/x-www-form-urlencoded'
+                                ]);
+                            $files = [];
+                            foreach ($this->files as $key => $file)
+                                $files["files[$key]"] = new CurlFile($file);
+                            curl_setopt($this->resource, CURLOPT_POSTFIELDS, $files);
                             break;
                         default:
                             throw new Exception("Unsupported or Invalid data type: \"{$this->data_type}\"");
