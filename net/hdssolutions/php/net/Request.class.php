@@ -2,7 +2,7 @@
     namespace net\hdssolutions\php\net;
 
     use CurlFile;
-    
+
     final class Request {
         /**
          * [$parent description]
@@ -108,7 +108,7 @@
             $this->resource = null;
             $this->res_url = null;
 
-            // return true for success  
+            // return true for success
             return true;
         }
 
@@ -241,9 +241,13 @@
                             $this->request_headers = array_merge($this->request_headers, [
                                     'Content-Type: application/x-www-form-urlencoded'
                                 ]);
+                            // append files
                             $files = [];
                             foreach ($this->files as $key => $file)
                                 $files["files[$key]"] = new CurlFile($file);
+                            // append data
+                            foreach ($this->data as $key => $value)
+                                $files[$key] = $value;
                             curl_setopt($this->resource, CURLOPT_POSTFIELDS, $files);
                             break;
                         default:
