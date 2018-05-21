@@ -117,9 +117,18 @@
             $this->request_headers[$key] = $value;
         }
 
-        public function addFile($file) {
+        public function addFile($field, $file = null) {
             //
-            $this->files[] = $file;
+            if ($file === null) {
+                // save file
+                $file = $field;
+                // replace field name
+                $field = 'files';
+            }
+            //
+            if (!isset($this->files[$field])) $this->files[$field] = [];
+            //
+            $this->files[$field][] = $file;
         }
 
         public function getHeaders() {
@@ -242,13 +251,14 @@
                                     'Content-Type: application/x-www-form-urlencoded'
                                 ]);
                             // append files
-                            $files = [];
-                            foreach ($this->files as $key => $file)
-                                $files["files[$key]"] = new CurlFile($file);
+                            $post = [];
+                            foreach ($this->files as $field => $files)
+                                foreach ($files as $key => $file)
+                                    $post[$field . (count($files) > 1 ? "[$key]" : '')] = new CurlFile($file);
                             // append data
                             foreach ($this->data as $key => $value)
-                                $files[$key] = $value;
-                            curl_setopt($this->resource, CURLOPT_POSTFIELDS, $files);
+                                $post[$key] = $value;
+                            curl_setopt($this->resource, CURLOPT_POSTFIELDS, $post);
                             break;
                         default:
                             throw new Exception("Unsupported or Invalid data type: \"{$this->data_type}\"");
