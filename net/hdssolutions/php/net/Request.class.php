@@ -251,14 +251,14 @@
                                     'Content-Type: application/x-www-form-urlencoded'
                                 ]);
                             // append files
-                            $files = [];
+                            $post = [];
                             foreach ($this->files as $field => $files)
                                 foreach ($files as $key => $file)
-                                    $files["$field[$key]"] = new CurlFile($file);
+                                    $post[$field . (count($files) > 1 ? "[$key]" : '')] = new CurlFile($file);
                             // append data
                             foreach ($this->data as $key => $value)
-                                $files[$key] = $value;
-                            curl_setopt($this->resource, CURLOPT_POSTFIELDS, $files);
+                                $post[$key] = $value;
+                            curl_setopt($this->resource, CURLOPT_POSTFIELDS, $post);
                             break;
                         default:
                             throw new Exception("Unsupported or Invalid data type: \"{$this->data_type}\"");
