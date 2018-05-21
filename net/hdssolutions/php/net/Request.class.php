@@ -117,9 +117,18 @@
             $this->request_headers[$key] = $value;
         }
 
-        public function addFile($file) {
+        public function addFile($field, $file = null) {
             //
-            $this->files[] = $file;
+            if ($file === null) {
+                // save file
+                $file = $field;
+                // replace field name
+                $field = 'files';
+            }
+            //
+            if (!isset($this->files[$field])) $this->files[$field] = [];
+            //
+            $this->files[$field][] = $file;
         }
 
         public function getHeaders() {
@@ -243,8 +252,9 @@
                                 ]);
                             // append files
                             $files = [];
-                            foreach ($this->files as $key => $file)
-                                $files["files[$key]"] = new CurlFile($file);
+                            foreach ($this->files as $field => $files)
+                                foreach ($files as $key => $file)
+                                    $files["$field[$key]"] = new CurlFile($file);
                             // append data
                             foreach ($this->data as $key => $value)
                                 $files[$key] = $value;
