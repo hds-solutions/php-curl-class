@@ -3,7 +3,7 @@
 
     require_once __DIR__.'/Request.class.php';
     use net\hdssolutions\php\net\Request;
-    
+
     final class Curl {
         /**
          * HTTP Auth
@@ -39,7 +39,7 @@
          */
         private $useragent = null;
 
-        public function __construct($useragent = 'Curl PHP Client (v0.4.1)') {
+        public function __construct($useragent = 'Curl PHP Client (v0.5.0)') {
             //
             $this->useragent = $useragent;
         }
