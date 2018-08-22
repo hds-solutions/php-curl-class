@@ -118,16 +118,21 @@
         }
 
         public function addFile($field, $file = null) {
-            //
+            // check if request type isn't POST
+            if ($this->request_type !== 'POST') throw new Exception('Only POST request can have files', 400);
+            // check if request data type is JSON
+            if ($this->data_type === 'json') throw new Exception('JSON POST data can\'t have files', 400);
+
+            // if file isn't specified, set field name to 'files'
             if ($file === null) {
                 // save file
                 $file = $field;
                 // replace field name
                 $field = 'files';
             }
-            //
+            // create field files array
             if (!isset($this->files[$field])) $this->files[$field] = [];
-            //
+            // add file to field array
             $this->files[$field][] = $file;
         }
 
@@ -217,54 +222,76 @@
         }
 
         private function setData() {
-            // check if we have POST or Files data
-            if ($this->data !== null || (count($this->files) > 0 && $this->data_type == 'file')) {
-                if (in_array($this->request_type, [ 'GET', 'DELETE' ])) {
-                    // append data to base URL
-                    $this->res_url .= (parse_url($this->res_url, PHP_URL_QUERY) === null ? '?' : '&') . http_build_query($this->data);
-                    // update request URL
-                    curl_setopt($this->resource, CURLOPT_URL, $this->res_url);
-                } else {
-                    // FIX: POST|PUT without body
-                    $this->data = $this->data === null ? (object)[ '__ALLOW_POST_PUT_WITHOUT_BODY' => true ] : $this->data;
-                    // append data to POST fields
+            // FIX POST|PUT without body, forcing data sent
+            $this->data = in_array($this->request_type, [ 'POST', 'PUT' ]) && $this->data === null ? (object)[ '__ALLOW_POST_PUT_WITHOUT_BODY' => true ] : $this->data;
+            // capture request type
+            switch ($this->request_type) {
+                case 'GET':
+                case 'DELETE':
+                    // capture GET|DELETE request with data
+                    if ($this->data !== null) {
+                        // append data to base URL
+                        $this->res_url .= (parse_url($this->res_url, PHP_URL_QUERY) === null ? '?' : '&') . http_build_query($this->data);
+                        // update request URL
+                        curl_setopt($this->resource, CURLOPT_URL, $this->res_url);
+                    }
+                    break;
+                case 'PUT':
+                case 'POST':
+                    // build POST|PUT data
+                    $postfields = [];
+                    // append files
+                    foreach ($this->files as $field => $files) {
+                        // add field array
+                        $postfields[$field] = [];
+                        // foreach files on field
+                        foreach ($files as $key => $file)
+                            // convert filename to CurlFile object
+                            $postfields[$field][$key] = new CurlFile($file, mime_content_type($file));
+                    }
+                    // append data
+                    $postfields = array_merge($postfields, (array)$this->data);
+                    // reduce multidimensional array to unidimensional array
+                    $postfields = $this->reduce($postfields);
+                    // check data type
                     switch ($this->data_type) {
-                        case 'url':
-                            //
-                            $this->request_headers = array_merge($this->request_headers, [
-                                    'Content-Type'      => 'application/x-www-form-urlencoded',
-                                    'Content-Length'    => strlen(http_build_query($this->data))
-                                ]);
-                            curl_setopt($this->resource, CURLOPT_POSTFIELDS, http_build_query($this->data));
-                            break;
                         case 'json':
-                            //
+                            // set headers Content-Type to JSON data
                             $this->request_headers = array_merge($this->request_headers, [
                                     'Content-Type'      => 'application/json',
-                                    'Content-Length'    => strlen(json_encode($this->data))
+                                    'Content-Length'    => strlen(json_encode($postfields))
                                 ]);
-                            curl_setopt($this->resource, CURLOPT_POSTFIELDS, json_encode($this->data));
+                            // append data as JSON string
+                            curl_setopt($this->resource, CURLOPT_POSTFIELDS, json_encode($postfields));
                             break;
-                        case 'file':
-                            //
-                            $this->request_headers = array_merge($this->request_headers, [
-                                    'Content-Type'      => 'application/x-www-form-urlencoded'
-                                ]);
-                            // append files
-                            $post = [];
-                            foreach ($this->files as $field => $files)
-                                foreach ($files as $key => $file)
-                                    $post[$field . (count($files) > 1 ? "[$key]" : '')] = new CurlFile($file);
-                            // append data
-                            foreach ($this->data as $key => $value)
-                                $post[$key] = $value;
-                            curl_setopt($this->resource, CURLOPT_POSTFIELDS, $post);
+                        case 'url':
+                        case 'file': // data_type=file backwards compatibility
+                            // append data array
+                            curl_setopt($this->resource, CURLOPT_POSTFIELDS, $postfields);
                             break;
                         default:
                             throw new Exception("Unsupported or Invalid data type: \"{$this->data_type}\"");
-                            break;
                     }
-                }
+                    break;
             }
+        }
+
+        private function reduce($array, $parent = null) {
+            //
+            $output = [];
+            // foreach array elements
+            foreach ($array as $key => $element) {
+                // check if element is array
+                if (is_array($element)) {
+                    // reduce element
+                    $temp = $this->reduce($element, $parent !== null ? $parent."[$key]" : $key);
+                    // append elements to current array
+                    $output = array_merge($output, $temp);
+                } else
+                    // copy element to output
+                    $output[$parent !== null ? $parent."[$key]" : $key] = $element;
+            }
+            //
+            return $output;
         }
     }
