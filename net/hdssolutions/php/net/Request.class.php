@@ -118,16 +118,21 @@
         }
 
         public function addFile($field, $file = null) {
-            //
+            // check if request type isn't POST
+            if ($this->request_type !== 'POST') throw new Exception('Only POST request can have files', 400);
+            // check if request data type is JSON
+            if ($this->data_type === 'json') throw new Exception('JSON POST data can\'t have files', 400);
+
+            // if file isn't specified, set field name to 'files'
             if ($file === null) {
                 // save file
                 $file = $field;
                 // replace field name
                 $field = 'files';
             }
-            //
+            // create field files array
             if (!isset($this->files[$field])) $this->files[$field] = [];
-            //
+            // add file to field array
             $this->files[$field][] = $file;
         }
 
