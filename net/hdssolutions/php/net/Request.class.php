@@ -74,6 +74,8 @@
             // execute request
             $this->response = curl_exec($this->resource);
 
+            var_dump($this->response);
+
             // parse headers
             $hsize = curl_getinfo($this->resource, CURLINFO_HEADER_SIZE);
             $headers = array_map('trim', explode("\n", substr($this->response, 0, $hsize)));
@@ -259,10 +261,10 @@
                             // set headers Content-Type to JSON data
                             $this->request_headers = array_merge($this->request_headers, [
                                     'Content-Type'      => 'application/json',
-                                    'Content-Length'    => strlen(json_encode($postfields))
+                                    'Content-Length'    => strlen(json_encode(in_array('JsonSerializable', class_implements($this->data)) ? $this->data : $postfields))
                                 ]);
                             // append data as JSON string
-                            curl_setopt($this->resource, CURLOPT_POSTFIELDS, json_encode($postfields));
+                            curl_setopt($this->resource, CURLOPT_POSTFIELDS, json_encode(in_array('JsonSerializable', class_implements($this->data)) ? $this->data : $postfields));
                             break;
                         case 'url':
                         case 'file': // data_type=file backwards compatibility
