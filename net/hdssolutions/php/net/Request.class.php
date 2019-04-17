@@ -74,8 +74,6 @@
             // execute request
             $this->response = curl_exec($this->resource);
 
-            var_dump($this->response);
-
             // parse headers
             $hsize = curl_getinfo($this->resource, CURLINFO_HEADER_SIZE);
             $headers = array_map('trim', explode("\n", substr($this->response, 0, $hsize)));
