@@ -267,7 +267,7 @@
                         case 'url':
                         case 'file': // data_type=file backwards compatibility
                             // append data array
-                            curl_setopt($this->resource, CURLOPT_POSTFIELDS, $postfields);
+                            curl_setopt($this->resource, CURLOPT_POSTFIELDS, $this->request_type == 'PUT' ? http_build_query($postfields) : $postfields);
                             break;
                         default:
                             throw new Exception("Unsupported or Invalid data type: \"{$this->data_type}\"");
